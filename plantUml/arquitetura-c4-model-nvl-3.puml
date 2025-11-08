@@ -1,0 +1,76 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title C4 Model - DDD + Clean Architecture com Fluxo de Eventos de Domínio
+
+' =========================
+' Nível 1 - Contexto
+' =========================
+Person(user, "Usuário / Sistema Externo", "Interage com o sistema via API")
+
+System_Boundary(app, "E-commerce DDD Application") {
+    Container(api, "API Layer", "Node.js / Express", "Interface HTTP/REST")
+    Container(application, "Application Layer", "TypeScript", "Casos de uso e orquestração")
+    Container(domain, "Domain Layer", "TypeScript", "Regras de negócio, entidades e eventos")
+    Container(infra, "Infrastructure Layer", "Sequelize / Banco de Dados", "Persistência e integrações externas")
+}
+
+Rel(user, api, "Realiza requisições HTTP")
+Rel(api, application, "Invoca casos de uso (services)")
+Rel(application, domain, "Manipula entidades e dispara eventos")
+Rel(application, infra, "Utiliza repositórios concretos")
+Rel(infra, domain, "Implementa interfaces do domínio")
+
+' =========================
+' Nível 2 - Domain Components
+' =========================
+System_Boundary(domainBoundary, "Domain Layer") {
+    Component(productEntity, "Product Entity", "Entidade de domínio que representa o produto")
+    Component(orderEntity, "Order Entity", "Entidade de domínio que representa o pedido")
+    Component(customerEntity, "Customer Entity", "Entidade de domínio que representa o cliente")
+    Component(valueObject, "Address Value Object", "Objeto de valor do cliente")
+    Component(factory, "Factories", "Criação controlada de entidades e agregados")
+    Component(service, "Domain Services", "Regras que envolvem múltiplas entidades")
+    Component(eventSystem, "Event Dispatcher", "Coordena o disparo e registro de eventos")
+    Component(productCreatedEvent, "ProductCreatedEvent", "Evento emitido quando um produto é criado")
+}
+
+' =========================
+' Nível 3 - Application e Infra Components
+' =========================
+System_Boundary(appBoundary, "Application Layer") {
+    Component(productService, "ProductService", "Coordena criação de produtos e dispara eventos")
+    Component(orderService, "OrderService", "Gerencia pedidos e regras associadas")
+    Component(customerService, "CustomerService", "Gerencia ciclo de vida de clientes")
+}
+
+System_Boundary(handlerBoundary, "Event Handlers") {
+    Component(sendEmailHandler, "SendEmailWhenProductIsCreatedHandler", "Ouvinte que envia e-mail quando ProductCreatedEvent é disparado")
+}
+
+System_Boundary(infraBoundary, "Infrastructure Layer") {
+    Component(productRepo, "ProductRepository (Sequelize)", "Implementação concreta de IProductRepository")
+    Component(models, "Sequelize Models", "Mapeamento ORM das entidades")
+}
+
+' =========================
+' Fluxo de Eventos de Domínio
+' =========================
+Rel(productService, productEntity, "Cria novo produto")
+Rel(productEntity, eventSystem, "Dispara evento ProductCreatedEvent")
+Rel(eventSystem, productCreatedEvent, "Publica evento")
+Rel(productCreatedEvent, sendEmailHandler, "Notifica handler registrado")
+Rel(sendEmailHandler, infra, "Envia e-mail / integração externa")
+
+' Persistência
+Rel(productService, productRepo, "Persiste produto")
+Rel(productRepo, models, "Mapeia entidade para banco via ORM")
+
+' Regras gerais
+Rel(orderService, orderEntity, "Manipula agregados de pedido")
+Rel(customerService, customerEntity, "Gerencia informações do cliente")
+
+SHOW_LEGEND()
+@enduml

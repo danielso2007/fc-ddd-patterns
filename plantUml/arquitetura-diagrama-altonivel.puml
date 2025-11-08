@@ -1,0 +1,61 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title C4 Model - Arquitetura DDD Node.js/TypeScript
+
+' =========================
+' Nível 1 - Contexto
+' =========================
+Person(customer, "Usuário / Sistema Externo", "Interage com o sistema via API ou CLI")
+
+System_Boundary(app, "E-commerce DDD Application") {
+    Container(api, "API Layer", "Node.js / Express (opcional)", "Expõe endpoints HTTP ou interfaces externas")
+    Container(application, "Application Layer", "TypeScript", "Coordena casos de uso e orquestra serviços")
+    Container(domain, "Domain Layer", "TypeScript", "Contém entidades, value objects, fábricas e eventos")
+    Container(infra, "Infrastructure Layer", "Sequelize / Banco de Dados", "Implementa persistência e integrações externas")
+}
+
+Rel(customer, api, "Envia requisições HTTP / comandos")
+Rel(api, application, "Chama casos de uso")
+Rel(application, domain, "Manipula entidades e eventos")
+Rel(application, infra, "Utiliza implementações de repositórios")
+Rel(infra, domain, "Implementa interfaces do domínio")
+Rel_Back(infra, api, "Retorna dados persistidos")
+
+' =========================
+' Nível 2 - Containers Internos
+' =========================
+System_Boundary(domainBoundary, "Domain Layer") {
+    Component(orderEntity, "Order Entity", "Representa pedidos e suas regras de negócio")
+    Component(customerEntity, "Customer Entity", "Representa clientes e comportamento")
+    Component(productEntity, "Product Entity", "Representa produtos e eventos de criação")
+    Component(valueObject, "Address Value Object", "Objeto imutável do cliente")
+    Component(factory, "Factories", "Criação controlada de entidades")
+    Component(service, "Domain Services", "Regras envolvendo múltiplas entidades")
+    Component(repositoryInterface, "Repository Interfaces", "Contratos para persistência")
+    Component(eventSystem, "Event Dispatcher", "Publica e reage a eventos de domínio")
+}
+
+System_Boundary(infraBoundary, "Infrastructure Layer") {
+    Component(orderRepo, "OrderRepository (Sequelize)", "Implementação do IOrderRepository")
+    Component(customerRepo, "CustomerRepository (Sequelize)", "Implementação do ICustomerRepository")
+    Component(productRepo, "ProductRepository (Sequelize)", "Implementação do IProductRepository")
+    Component(models, "Sequelize Models", "Mapeamento ORM das entidades")
+}
+
+Rel(application, service, "Usa serviços de domínio")
+Rel(service, repositoryInterface, "Acessa repositórios via contrato")
+Rel(repositoryInterface, orderRepo, "Implementado por")
+Rel(repositoryInterface, customerRepo, "Implementado por")
+Rel(repositoryInterface, productRepo, "Implementado por")
+Rel(orderRepo, models, "Utiliza modelos ORM")
+Rel(productRepo, models, "Utiliza modelos ORM")
+Rel(customerRepo, models, "Utiliza modelos ORM")
+Rel(eventSystem, service, "Dispara eventos")
+Rel(productEntity, eventSystem, "Publica evento 'ProductCreated'")
+
+SHOW_LEGEND()
+
+@enduml

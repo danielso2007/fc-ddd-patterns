@@ -1,0 +1,32 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title C4 - Container View
+
+Person(user, "Usuário / Cliente", "Consumidor da API")
+
+System_Boundary(system, "E-commerce DDD Application") {
+  Container(api, "API Layer", "Node.js / Express", "Valida/transforma request e delega para Application Layer")
+  Container(app, "Application Layer", "TypeScript", "Orquestra casos de uso; coordena Domain e repositórios via interfaces")
+  Container(domain, "Domain Layer", "TypeScript", "Entidades, Value Objects, Factories, Events e Interfaces (contratos). Sem dependência de infra.")
+  Container(infra, "Infrastructure Layer", "Sequelize / Adapters", "Implementações concretas: repositórios, adaptadores e integrações")
+}
+
+' Sistemas externos (fora do boundary principal)
+Container(db, "Relational Database", "Postgres / MySQL", "Armazenamento persistente (acessado pela Infrastructure Layer)")
+Container(email, "Email Service", "SMTP / Provider", "Serviço externo utilizado por handlers")
+Container(queue, "Message Queue", "RabbitMQ / Kafka", "Opcional: integração assíncrona para domain events")
+
+' Relacionamentos
+Rel(user, api, "Faz requisições HTTP")
+Rel(api, app, "Invoca casos de uso (Controllers)")
+Rel(app, domain, "Usa entidades e interfaces definidas no Domain")
+Rel(app, infra, "Depende de implementações concretas (injeção em runtime)")
+Rel(infra, domain, "Implementa interfaces definidas no Domain (ex: IOrderRepository)")
+Rel(infra, db, "Lê/Grava dados (via Sequelize)")
+Rel(infra, email, "Envia mensagens")
+Rel(infra, queue, "Publica/consome eventos (opcional)")
+
+SHOW_LEGEND()
+@enduml

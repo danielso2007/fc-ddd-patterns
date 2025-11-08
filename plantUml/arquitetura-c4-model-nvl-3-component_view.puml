@@ -1,0 +1,75 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title C4 Model - Component View\nApplication e Domain Layers (DDD + Clean Architecture)
+
+Person(user, "Usuário / Sistema Externo", "Cliente HTTP, CLI ou integração")
+
+Container_Boundary(app, "E-commerce DDD Application") {
+
+    ' ===========================
+    ' Application Layer Components
+    ' ===========================
+    Container(application, "Application Layer", "TypeScript", "Casos de uso e orquestração de regras") {
+        Component(orderService, "OrderService", "Orquestra criação e atualização de pedidos")
+        Component(productService, "ProductService", "Gerencia criação e atualização de produtos")
+        Component(customerService, "CustomerService", "Gerencia ciclo de vida de clientes")
+    }
+
+    ' ===========================
+    ' Domain Layer Components
+    ' ===========================
+    Container(domain, "Domain Layer", "TypeScript", "Regras de negócio e contratos") {
+        Component(orderEntity, "Order Entity", "Entidade de domínio responsável por pedidos")
+        Component(orderItemEntity, "OrderItem Entity", "Item de pedido (agregado de Order)")
+        Component(customerEntity, "Customer Entity", "Entidade de domínio de cliente")
+        Component(productEntity, "Product Entity", "Entidade de domínio de produto")
+        Component(valueObject, "Address Value Object", "Objeto imutável de endereço")
+        Component(factory, "Factories", "Criação consistente de entidades e agregados")
+        Component(repositoryInterface, "Repository Interfaces", "Contratos de persistência (ex: IOrderRepository)")
+        Component(domainService, "Domain Services", "Regras de negócio envolvendo múltiplas entidades")
+        Component(eventDispatcher, "EventDispatcher", "Gerencia publicação e registro de eventos de domínio")
+        Component(productCreatedEvent, "ProductCreatedEvent", "Evento de domínio emitido ao criar produto")
+    }
+
+    ' ===========================
+    ' Infrastructure Layer Components
+    ' ===========================
+    Container(infra, "Infrastructure Layer", "Sequelize / DB / Integrações") {
+        Component(orderRepository, "OrderRepository (Sequelize)", "Implementa IOrderRepository")
+        Component(customerRepository, "CustomerRepository (Sequelize)", "Implementa ICustomerRepository")
+        Component(productRepository, "ProductRepository (Sequelize)", "Implementa IProductRepository")
+        Component(models, "Sequelize Models", "Mapeamento ORM das entidades")
+        Component(emailService, "Email Handler", "Envia e-mails quando eventos são disparados")
+    }
+
+}
+
+' ===========================
+' Relacionamentos
+' ===========================
+Rel(user, productService, "Cria/consulta produtos via API Layer")
+Rel(user, orderService, "Gerencia pedidos")
+Rel(user, customerService, "Gerencia clientes")
+
+' Application → Domain
+Rel(productService, productEntity, "Cria e manipula entidades de domínio")
+Rel(productService, repositoryInterface, "Utiliza repositórios via interface")
+Rel(orderService, orderEntity, "Manipula pedidos e itens")
+Rel(customerService, customerEntity, "Manipula clientes e endereços")
+Rel(factory, productEntity, "Instancia entidades consistentes")
+Rel(productEntity, eventDispatcher, "Dispara eventos de domínio")
+Rel(eventDispatcher, productCreatedEvent, "Publica evento ProductCreated")
+Rel(productCreatedEvent, emailService, "Aciona envio de e-mail via handler")
+Rel(emailService, infra, "Usa infraestrutura (SMTP, etc)")
+
+' Domain → Infra
+Rel(repositoryInterface, orderRepository, "Implementado por")
+Rel(repositoryInterface, customerRepository, "Implementado por")
+Rel(repositoryInterface, productRepository, "Implementado por")
+Rel(productRepository, models, "Utiliza ORM Sequelize")
+
+SHOW_LEGEND()
+@enduml
