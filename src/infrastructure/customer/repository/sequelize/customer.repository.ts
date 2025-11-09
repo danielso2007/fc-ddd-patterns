@@ -8,10 +8,10 @@ export default class CustomerRepository implements CustomerRepositoryInterface {
     await CustomerModel.create({
       id: entity.id,
       name: entity.name,
-      street: entity.Address.street,
-      number: entity.Address.number,
-      zipcode: entity.Address.zip,
-      city: entity.Address.city,
+      street: entity.address.street,
+      number: entity.address.number,
+      zipcode: entity.address.zip,
+      city: entity.address.city,
       active: entity.isActive(),
       rewardPoints: entity.rewardPoints,
     });
@@ -21,10 +21,10 @@ export default class CustomerRepository implements CustomerRepositoryInterface {
     await CustomerModel.update(
       {
         name: entity.name,
-        street: entity.Address.street,
-        number: entity.Address.number,
-        zipcode: entity.Address.zip,
-        city: entity.Address.city,
+        street: entity.address.street,
+        number: entity.address.number,
+        zipcode: entity.address.zip,
+        city: entity.address.city,
         active: entity.isActive(),
         rewardPoints: entity.rewardPoints,
       },
@@ -47,8 +47,7 @@ export default class CustomerRepository implements CustomerRepositoryInterface {
       });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error(error);
-      throw new Error("Customer not found");
+      throw new Error(`Customer not found: ${error}`);
     }
 
     const customer = new Customer(id, customerModel.name);
