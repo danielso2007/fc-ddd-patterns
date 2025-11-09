@@ -46,6 +46,8 @@ export default class CustomerRepository implements CustomerRepositoryInterface {
         rejectOnEmpty: true,
       });
     } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(error);
       throw new Error("Customer not found");
     }
 

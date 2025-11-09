@@ -25,7 +25,7 @@ export default class Customer {
     return this._rewardPoints;
   }
 
-  validate() {
+  validate(): void {
     if (this._id.length === 0) {
       throw new Error("Id is required");
     }
@@ -34,7 +34,7 @@ export default class Customer {
     }
   }
 
-  changeName(name: string) {
+  changeName(name: string): void {
     this._name = name;
     this.validate();
   }
@@ -43,7 +43,7 @@ export default class Customer {
     return this._address;
   }
   
-  changeAddress(address: Address) {
+  changeAddress(address: Address): void {
     this._address = address;
   }
 
@@ -51,18 +51,18 @@ export default class Customer {
     return this._active;
   }
 
-  activate() {
+  activate(): void {
     if (this._address === undefined) {
       throw new Error("Address is mandatory to activate a customer");
     }
     this._active = true;
   }
 
-  deactivate() {
+  deactivate(): void {
     this._active = false;
   }
 
-  addRewardPoints(points: number) {
+  addRewardPoints(points: number): void {
     this._rewardPoints += points;
   }
 
